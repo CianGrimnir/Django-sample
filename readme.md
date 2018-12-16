@@ -1,10 +1,10 @@
-####Prerequisite:
+#### Prerequisite:
 Django
 
-####Running the application
+#### Running the application
 python3 manage.py runserver 0.0.0.0
 
-#####APIs
+##### APIs
 GET /emapi/employees   --> Get all the employees
 
 GET /emapi/employee/<id> --> Get informaton of specific id
