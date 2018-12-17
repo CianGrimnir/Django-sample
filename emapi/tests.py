@@ -1,38 +1,49 @@
 from django.test import TestCase
 from django.test.client import RequestFactory
-from emapi.views import index, post
+from emapi.views import index, post, list
+import json
 
 # Create your tests here
 class YourTestClass(TestCase):
-    '''def setUpTestData(cls):
-        print("setUpTestData: Run once to set up non-modified data for all class methods.")
-        pass
-
-    def setUp(self):
-        print("setUp: Run once for every test method to setup clean data.")
-        pass
-
-    def test_false_is_false(self):
-        print("Method: test_false_is_false.")
-        self.assertFalse(False)
-
-    def test_false_is_true(self):
-        print("Method: test_false_is_true.")
-        self.assertTrue(True)
-
-    def test_one_plus_one_equals_two(self):
-        print("Method: test_one_plus_one_equals_two.")
-        self.assertEqual(1 + 1, 2)
-        '''
-#    body={"Employee ID": 5, "First Name": "rahul", "last name": "nair", "Department": "Sr.Devops"}
+    
+    employee_id=22
+    employee_id_test=44
     body={
-            "employee": {
-                "employee_id" : "22",
+            "22": {
+                "employee_id" : 22,
                 "first_name": "Foo1",
                 "last_name": "Bar2",
                 "department": "Central2 Tech"
                         }
             }
+    body_neg={
+            "-22": {
+                "employee_id" : -22,
+                "first_name": "Foo1",
+                "last_name": "Bar2",
+                "department": "Central2 Tech"
+                        }
+            }
+
+    post_error={ 'status code': 404,
+                  'body': 'INVALID POST/WRONG DATA',
+                  }
+                                  
+    list_error={ 'status code': 404,
+                'body': 'Employee id: '+str(employee_id_test)+' not found',
+                }
+    body_reorder={
+            "22": {
+                "first_name": "Foo1",
+                "employee_id" : 22,
+                "last_name": "Bar2",
+                "lst_name": "Far2",
+                "department": "Central2 Tech"
+                        }
+            }
+    post_duplicate_resp={"status code": 404, "body": "DUPLICATE DATA"}
+
+
     @classmethod
     def setUp(self) :
         # Every test needs access to the request factory.
@@ -40,13 +51,41 @@ class YourTestClass(TestCase):
 
     def test_put(self):
         request=self.factory.put('/emapi/addemployee/',self.body,content_type='application/json')
+        putresponse=post(request)
+        resultresponse=json.loads(putresponse.content.decode('ascii'))
+        self.assertDictEqual(resultresponse, self.body)
+
+    def test_neg_put(self):
+        request=self.factory.put('/emapi/addemployee/',self.body_neg,content_type='application/json')
+        putresponse=post(request)
+        resultresponse=json.loads(putresponse.content.decode('ascii'))
+        self.assertDictEqual(resultresponse, self.post_error)
 
     def test_index(self) :
-        putrequest=self.factory.put('/emapi/addemployee/',self.body,content_type='application/json')
+        putrequest=self.factory.put('/emapi/addemployee/',self.body_reorder,content_type='application/json')
         putresponse=post(putrequest)
         request = self.factory.get ( '/emapi/employees' )
         response = index ( request )
         self.assertEqual ( response.status_code, 200)
-        print("Response ")
-        print(response.content)
-        self.assertEqual(putresponse.content, self.body)
+        resultresponse=json.loads(response.content.decode('ascii'))
+        putresultresponse=json.loads(response.content.decode('ascii'))
+        self.assertDictEqual(resultresponse, putresultresponse)
+
+    def test_list(self):
+        putrequest=self.factory.put('/emapi/addemployee/',self.body,content_type='application/json')
+        putresponse=post(putrequest)
+        request = self.factory.get ( 'employee/<int:employee_id>/' )
+        response = list ( request,self.employee_id )
+        self.assertEqual ( response.status_code, 200)
+        resultresponse=json.loads(response.content.decode('ascii'))
+        self.assertDictEqual(resultresponse, self.body)
+
+    def test_list_error(self):
+        putrequest=self.factory.put('/emapi/addemployee/',self.body,content_type='application/json')
+        putresponse=post(putrequest)
+        request = self.factory.get ( 'employee/<int:employee_id>/' )
+        response = list ( request,self.employee_id_test )
+        self.assertEqual ( response.status_code, 404)
+        resultresponse=json.loads(response.content.decode('ascii'))
+        self.assertDictEqual(resultresponse, self.list_error)
+        

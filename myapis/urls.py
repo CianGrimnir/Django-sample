@@ -19,6 +19,6 @@ from django.conf.urls import url, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('eapi/', include('eapi.urls')),
+#    path('eapi/', include('eapi.urls')),
     path('emapi/', include('emapi.urls')),
 ]
