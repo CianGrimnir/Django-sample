@@ -3,7 +3,6 @@ from django.test.client import RequestFactory
 from emapi.views import index, post, list
 import json
 
-# Create your tests here
 class YourTestClass(TestCase):
     
     employee_id=22
@@ -32,15 +31,19 @@ class YourTestClass(TestCase):
     list_error={ 'status code': 404,
                 'body': 'Employee id: '+str(employee_id_test)+' not found',
                 }
+
     body_reorder={
             "22": {
                 "first_name": "Foo1",
                 "employee_id" : 22,
                 "last_name": "Bar2",
-                "lst_name": "Far2",
                 "department": "Central2 Tech"
                         }
             }
+
+
+    body_empty={}
+
     post_duplicate_resp={"status code": 404, "body": "DUPLICATE DATA"}
 
 
@@ -55,8 +58,22 @@ class YourTestClass(TestCase):
         resultresponse=json.loads(putresponse.content.decode('ascii'))
         self.assertDictEqual(resultresponse, self.body)
 
+    def test_duplicate_put(self):
+        request=self.factory.put('/emapi/addemployee/',self.body,content_type='application/json')
+        putresponse=post(request)
+        request=self.factory.put('/emapi/addemployee/',self.body,content_type='application/json')
+        putresponse=post(request)
+        resultresponse=json.loads(putresponse.content.decode('ascii'))
+        self.assertDictEqual(resultresponse, self.post_duplicate_resp)
+
     def test_neg_put(self):
         request=self.factory.put('/emapi/addemployee/',self.body_neg,content_type='application/json')
+        putresponse=post(request)
+        resultresponse=json.loads(putresponse.content.decode('ascii'))
+        self.assertDictEqual(resultresponse, self.post_error)
+
+    def test_empty_put(self):
+        request=self.factory.put('/emapi/addemployee/',self.body_empty,content_type='application/json')
         putresponse=post(request)
         resultresponse=json.loads(putresponse.content.decode('ascii'))
         self.assertDictEqual(resultresponse, self.post_error)
