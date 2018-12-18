@@ -21,3 +21,5 @@ PUT /emapi/addemployee --> Put data for an employee with below json format
         }
 }
 ```
+#### Executing unit test
+python3 manage.py test
